@@ -29,6 +29,13 @@ pipeline:
                   spec:
                     shell: Sh
                     command: npm run ai:harness
+              - step:
+                  type: Run
+                  name: native_tests
+                  identifier: native_tests
+                  spec:
+                    shell: Sh
+                    command: npm run test:native
     - stage:
         name: approval_gate
         identifier: approval_gate

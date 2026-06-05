@@ -8,25 +8,40 @@ Guía inicial para operar proyectos de software con IA usando evidencia, SDD/spe
 
 Este template funciona sin dependencias externas y puede envolver proyectos Node/TypeScript, Python, Java, .NET u otro stack. La política central vive en `CONSTITUTION.md`; el vocabulario operativo vive en `ai-engineering/GLOSSARY.md`.
 
+## Propuesta de valor
+
+Los equipos ya usan asistentes de IA para programar, revisar y documentar, pero normalmente lo hacen con prompts sueltos, contexto incompleto y criterios de entrega poco verificables. AI Harness Template resuelve ese problema convirtiendo el uso de IA en un flujo de ingeniería gobernado: evidencia antes de diseño, specs antes de cambios grandes, tests antes de entrega y memoria persistente para no empezar desde cero en cada conversación.
+
+Está hecho para equipos de software que quieren adoptar IA sobre repositorios reales sin perder control técnico: tech leads, squads de producto, plataformas internas, consultoras, equipos enterprise y developers que operan con chats de editor o agentes con herramientas.
+
+Lo distinto no es otro wrapper, SDK o prompt mágico. Es una capa operativa completa que combina constitución, glosario, memoria, rutas por tipo de trabajo, policy runtime, SDD/spec-kit, evaluaciones y CI/CD. Al adoptarlo, un equipo obtiene un modo repetible de convertir tickets o conversaciones en cambios trazables con estado final claro: `READY_FOR_PR` o `BLOCKED`.
+
+Antes de entregar cualquier cambio, el flujo debe pasar por el [Checklist antes de entregar](#checklist-antes-de-entregar): objetivo, evidencia, arquitectura afectada, pruebas, seguridad, memoria, riesgos y resultado final.
+
 ## Índice
 
 1. [Qué es este template](#qué-es-este-template)
-2. [Cuándo usarlo](#cuándo-usarlo)
-3. [Qué incluye](#qué-incluye)
-4. [Inicio rápido](#inicio-rápido)
-5. [Cómo usar este template en un proyecto](#cómo-usar-este-template-en-un-proyecto)
-6. [Uso desde chats de editores](#uso-desde-chats-de-editores)
-7. [Prompts iniciales recomendados](#prompts-iniciales-recomendados)
-8. [Ejemplo de entrada](#ejemplo-de-entrada)
-9. [Cómo usarlo paso a paso](#cómo-usarlo-paso-a-paso)
-10. [Flujos disponibles](#flujos-disponibles)
-11. [Ejemplos por flujo](#ejemplos-por-flujo)
-12. [Estructura recomendada de specs](#estructura-recomendada-de-specs)
-13. [Perfil Node.js](#perfil-nodejs)
-14. [Perfil .NET y Azure DevOps](#perfil-net-y-azure-devops)
-15. [Checklist antes de entregar](#checklist-antes-de-entregar)
-16. [Comandos útiles](#comandos-útiles)
-17. [Principios de diseño](#principios-de-diseño)
+2. [Qué lo diferencia](#qué-lo-diferencia)
+3. [Perfil ideal de usuario](#perfil-ideal-de-usuario)
+4. [Mini arquitectura del template](#mini-arquitectura-del-template)
+5. [Estado del proyecto](#estado-del-proyecto)
+6. [Pendiente por adopción](#pendiente-por-adopción)
+7. [Cuándo usarlo](#cuándo-usarlo)
+8. [Qué incluye](#qué-incluye)
+9. [Inicio rápido](#inicio-rápido)
+10. [Cómo usar este template en un proyecto](#cómo-usar-este-template-en-un-proyecto)
+11. [Uso desde chats de editores](#uso-desde-chats-de-editores)
+12. [Prompts iniciales recomendados](#prompts-iniciales-recomendados)
+13. [Ejemplo de entrada](#ejemplo-de-entrada)
+14. [Cómo usarlo paso a paso](#cómo-usarlo-paso-a-paso)
+15. [Flujos disponibles](#flujos-disponibles)
+16. [Ejemplos por flujo](#ejemplos-por-flujo)
+17. [Estructura recomendada de specs](#estructura-recomendada-de-specs)
+18. [Perfil Node.js](#perfil-nodejs)
+19. [Perfil .NET y Azure DevOps](#perfil-net-y-azure-devops)
+20. [Checklist antes de entregar](#checklist-antes-de-entregar)
+21. [Comandos útiles](#comandos-útiles)
+22. [Principios de diseño](#principios-de-diseño)
 
 ## Qué es este template
 
@@ -42,6 +57,79 @@ Un AI harness es una capa de control para trabajar con IA sobre una codebase. Co
 - checklist end-to-end.
 
 La idea principal es simple: primero evidencia, después diseño; primero agente principal, después subagentes solo si existe una razón real.
+
+## Qué lo diferencia
+
+AI Harness Template no intenta reemplazar tu editor, tu CI ni tu framework. Los coordina para que el trabajo con IA sea auditable y repetible.
+
+- **No es solo un prompt**: incluye reglas versionadas, memoria, plantillas, evaluaciones, policy runtime y pipelines.
+- **No es un SDK de IA**: no obliga a reescribir el producto ni agrega runtime productivo; opera alrededor de la codebase.
+- **No es un wrapper de agentes**: define cuándo usar agente principal, tools, subagentes, specs, aprobaciones y gates.
+- **No depende de un stack único**: puede envolver proyectos Node.js, .NET, Java, Python, frontend, backend o monorepos.
+- **No entrega por intuición**: exige evidencia, validación, riesgos residuales y un estado final explícito.
+
+El diferencial práctico es que convierte una conversación con IA en un proceso de delivery: entrada, evidencia, ruta, spec, implementación, tests, revisión, memoria y entrega.
+
+## Perfil ideal de usuario
+
+Este template encaja especialmente bien si tu equipo:
+
+- ya usa chats de editor o agentes para programar y revisar código;
+- trabaja sobre repositorios reales con deuda, historia y reglas de negocio;
+- necesita trazabilidad entre ticket, decisión técnica, tests y entrega;
+- quiere adoptar IA sin dejar decisiones críticas solo en lenguaje natural;
+- tiene CI/CD o busca llevar el flujo hacia GitHub Actions, Azure DevOps o Harness.io;
+- quiere estandarizar cómo se pide, valida y entrega trabajo asistido por IA.
+
+Puede ser demasiado formal para scripts personales o prototipos descartables. Brilla más cuando hay más de una persona, más de un cambio y necesidad de repetir el proceso con confianza.
+
+## Mini arquitectura del template
+
+```mermaid
+flowchart TD
+  Input["Ticket, prompt o comando /ai-harness"] --> Context["Constitución, glosario y memoria"]
+  Context --> Evidence["Evidencia observable del repo"]
+  Evidence --> Route["Ruta por tipo de trabajo"]
+  Route --> Specs["Spec, plan, tasks y validation"]
+  Specs --> Agent["Agente principal con tools"]
+  Agent --> Runtime["Policy runtime y guardrails"]
+  Runtime --> Checks["Tests, evals y npm run ai:harness"]
+  Checks --> Delivery{"Estado final"}
+  Delivery -->|aprobado| Ready["READY_FOR_PR"]
+  Delivery -->|falta evidencia| Blocked["BLOCKED"]
+  Delivery --> Memory["Memoria y riesgos actualizados"]
+  Memory --> Context
+```
+
+La arquitectura completa por capas vive en `ai-engineering/TEMPLATE_LAYERS_AND_DIAGRAMS.md`.
+
+## Estado del proyecto
+
+Estado actual: **MVP operativo**.
+
+Ya incluye template inicial, constitución, glosario, memoria, prompts, skills, rutas SDLC, command routing, policy runtime, tests nativos, harness automático, GitHub Actions, Harness.io pipeline, Azure DevOps pipeline condicional por stack, perfiles Node.js/.NET y plantillas de adopción para audiencias, tools, integraciones y observabilidad.
+
+La verificación base se ejecuta con:
+
+```bash
+npm run ai:harness
+npm test
+npm run test:native
+npm run test:all
+```
+
+El estado vivo del template se mantiene en `ai-engineering/state/implementation-status.md`.
+
+## Pendiente por adopción
+
+El template deja listas las piezas base. En cada proyecto real todavía debes completar:
+
+- audiencias con roles, permisos y aprobaciones del dominio;
+- tools reales conectadas al producto o plataforma del equipo;
+- dashboards con métricas de CI, PRs, tickets y evidencia;
+- integraciones Jira, Confluence, Slack/Teams u otras fuentes operativas;
+- ambientes Harness.io, approvals y secrets específicos;
+- evals con casos propios del dominio.
 
 ## Cuándo usarlo
 
@@ -63,6 +151,10 @@ No está pensado como un framework de runtime de producción. Es una capa de ope
 - `ai-engineering/GLOSSARY.md` - vocabulario común para humanos, agentes LLM y pipelines.
 - `ai-engineering/profiles/nodejs.md` - perfil para proyectos Node.js, JavaScript, TypeScript, frontend, backend y monorepos.
 - `ai-engineering/profiles/dotnet.md` - perfil para soluciones .NET, Azure DevOps, code review, SOLID y Clean Architecture pragmática.
+- `ai-engineering/audiences/` - plantilla para roles, permisos, approvals y expectativas de entrega por audiencia.
+- `ai-engineering/tools/` - manifiesto base para declarar tools reales y sus permisos.
+- `ai-engineering/integrations/` - checklist de adopción para Jira/Azure Boards, Confluence, Slack/Teams y Harness.io.
+- `ai-engineering/observability/` - guía y plantilla para dashboards de delivery asistido por IA.
 - `ai-engineering/workflows/` - workflow SDLC asistido por IA y rutas por tipo de trabajo.
 - `ai-engineering/spec-kit/` - integración con GitHub Spec Kit y fallback SDD simple.
 - `prompts/` - prompts versionados para agentes de software.
@@ -73,16 +165,18 @@ No está pensado como un framework de runtime de producción. Es una capa de ope
 - `CONSTITUTION.md` - reglas obligatorias de evidencia, memoria, simplicidad agentic, antipatterns, performance, cobertura de pruebas y definición de done.
 - `.github/workflows/ai-harness.yml` - CI para PRs.
 - `.harness/ai-harness-pipeline.yaml` - pipeline base para Harness.io.
-- `azure-pipelines.yml` - pipeline base para Azure DevOps en proyectos .NET.
+- `azure-pipelines.yml` - pipeline base para Azure DevOps con pasos Node/.NET condicionales por señales del repo.
 
 ## Inicio rápido
 
 ```bash
 npm run ai:harness
 npm test
+npm run test:native
+npm run test:all
 ```
 
-Ambos comandos ejecutan el harness mínimo definido en `scripts/run-harness.js`.
+`npm run ai:harness` y `npm test` ejecutan el runner determinístico definido en `scripts/run-harness.js`. `npm run test:native` ejecuta la suite `node --test`; `npm run test:all` corre ambas verificaciones.
 
 ## Cómo usar este template en un proyecto
 
@@ -507,19 +601,25 @@ Gates mínimos .NET:
 npm run ai:harness
 ```
 
-Ejecuta el harness mínimo del template.
+Ejecuta el harness determinístico del template.
 
 ```bash
 npm test
 ```
 
-Alias de verificación para CI local.
+Alias local de `npm run ai:harness`.
 
 ```bash
-node --test
+npm run test:native
 ```
 
 Ejecuta los tests nativos en `tests/`.
+
+```bash
+npm run test:all
+```
+
+Ejecuta harness y suite nativa. Es la verificación más completa cuando el entorno permite `node --test`.
 
 ## Principios de diseño
 

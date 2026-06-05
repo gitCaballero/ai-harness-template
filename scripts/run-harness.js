@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import {
+  getCommandRoute,
+  listCommandRoutes,
+  normalizeCommand,
+  validateCommandConfiguration,
+} from '../src/command-router.js';
 import { evaluateBusinessPolicy } from '../src/deterministic-policy.js';
 import { createHarnessDecision, validateHarnessConfiguration } from '../src/harness-decision.js';
 import { maskEmail, maskIdentifier } from '../src/pii.js';
 import { getSpecKitRoute } from '../src/spec-kit-router.js';
 import { detectStackProfiles } from '../src/stack-profile-router.js';
-import { assertToolAllowed, toolsForAudience } from '../src/tool-policy.js';
+import { assertToolAllowed, toolCatalog, toolsForAudience } from '../src/tool-policy.js';
 import { getTaskDecompositionDecision, getWorkflowRoute, shouldUseSubagents } from '../src/workflow-router.js';
 
 const tests = [];
@@ -31,6 +37,15 @@ test('audience tools are explicit and discoverable', () => {
   const tools = toolsForAudience('specialist').map((tool) => tool.name);
 
   assert.deepEqual(tools, ['check_status', 'list_cases', 'validate_policy', 'execute_workflow', 'explain_case']);
+});
+
+test('tool descriptions use clear operational keywords', () => {
+  const descriptions = toolCatalog.map((tool) => tool.description).join(' ');
+
+  assert.match(descriptions, /business request/i);
+  assert.match(descriptions, /deterministic business policy/i);
+  assert.match(descriptions, /AI evaluations/i);
+  assert.match(descriptions, /CI\/CD/i);
 });
 
 test('critical decisions stay deterministic', () => {
@@ -144,11 +159,16 @@ test('minimum memory and prompt structure exists', () => {
     '../ai-engineering/GLOSSARY.md',
     '../ai-engineering/profiles/nodejs.md',
     '../ai-engineering/profiles/dotnet.md',
+    '../ai-engineering/audiences/audience-template.md',
+    '../ai-engineering/tools/tool-manifest-template.json',
+    '../ai-engineering/integrations/README.md',
+    '../ai-engineering/observability/dashboard-template.md',
     '../ai-engineering/templates/plan-template.md',
     '../ai-engineering/templates/tasks-template.md',
     '../ai-engineering/templates/evidence-template.md',
     '../ai-engineering/templates/validation-template.md',
     '../ai-engineering/workflows/SDLC_AI_WORKFLOW.md',
+    '../ai-engineering/workflows/command-routes.json',
     '../ai-engineering/workflows/workflow-routes.json',
     '../azure-pipelines.yml',
   ];
@@ -156,6 +176,30 @@ test('minimum memory and prompt structure exists', () => {
   for (const file of requiredFiles) {
     assert.equal(existsSync(new URL(file, import.meta.url)), true, `${file} should exist`);
   }
+});
+
+test('package scripts expose stable harness and native test commands', () => {
+  const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+
+  assert.equal(packageJson.scripts['ai:harness'], 'node scripts/run-harness.js');
+  assert.equal(packageJson.scripts.test, 'npm run ai:harness');
+  assert.equal(packageJson.scripts['test:native'], 'node --test');
+  assert.match(packageJson.scripts['test:all'], /test:native/);
+});
+
+test('CI pipelines run harness checks and native tests', () => {
+  const githubWorkflow = readFileSync(new URL('../.github/workflows/ai-harness.yml', import.meta.url), 'utf8');
+  const harnessPipeline = readFileSync(new URL('../.harness/ai-harness-pipeline.yaml', import.meta.url), 'utf8');
+  const azurePipeline = readFileSync(new URL('../azure-pipelines.yml', import.meta.url), 'utf8');
+
+  assert.match(githubWorkflow, /npm run ai:harness/);
+  assert.match(githubWorkflow, /npm run test:native/);
+  assert.match(harnessPipeline, /npm run ai:harness/);
+  assert.match(harnessPipeline, /npm run test:native/);
+  assert.match(azurePipeline, /npm run ai:harness/);
+  assert.match(azurePipeline, /npm run test:native/);
+  assert.match(azurePipeline, /\*\.sln/);
+  assert.match(azurePipeline, /\*\.csproj/);
 });
 
 test('workflow router maps core work types to expected routes', () => {
@@ -185,8 +229,10 @@ test('github spec kit is preferred when detected and simple SDD is the fallback'
   const fallbackRoute = getSpecKitRoute('feature', {});
 
   assert.equal(readyRoute.provider, 'github_spec_kit');
+  assert.equal(readyRoute.detection.status, 'ready');
   assert.deepEqual(readyRoute.commands.slice(0, 3), ['/speckit.specify', '/speckit.clarify', '/speckit.plan']);
   assert.equal(fallbackRoute.provider, 'simple_sdd');
+  assert.equal(fallbackRoute.detection.status, 'install_required');
   assert.deepEqual(fallbackRoute.artifacts, ['spec.md', 'plan.md', 'tasks.md', 'evidence.md', 'validation.md']);
   assert.match(fallbackRoute.suggestion.persistentInstall, /github\/spec-kit/);
 });
@@ -220,6 +266,20 @@ test('harness decision includes stack profiles for targeted adoption', () => {
   assert.equal(decision.stackProfiles.detected[0].stack, 'nodejs');
 });
 
+test('harness decision falls back to simple SDD without Spec Kit', () => {
+  const decision = createHarnessDecision({
+    workType: 'bugfix',
+    complexity: 'small',
+  });
+
+  assert.equal(decision.specProvider, 'simple_sdd');
+  assert.deepEqual(decision.documentation.minimumRequiredArtifacts, ['spec.md', 'evidence.md', 'validation.md']);
+  assert.deepEqual(decision.documentation.providerArtifacts, ['spec.md', 'evidence.md', 'validation.md']);
+  assert.deepEqual(decision.documentation.supplementalRequired, []);
+  assert.equal(decision.taskDecomposition.required, false);
+  assert.deepEqual(decision.spec.artifacts, ['spec.md', 'evidence.md', 'validation.md']);
+});
+
 test('harness configuration stays consistent across routers', () => {
   const result = validateHarnessConfiguration();
 
@@ -236,6 +296,67 @@ test('editor chat commands expose aligned ai harness entries', () => {
   assert.match(commands, /decisión unificada del harness/i);
   assert.match(commands, /simple_sdd/);
   assert.match(commands, /github_spec_kit/);
+});
+
+test('command routes prevent documented commands without process and output', () => {
+  const result = validateCommandConfiguration();
+
+  assert.equal(result.valid, true, result.issues.join('\n'));
+
+  for (const command of [
+    'help',
+    'analyze',
+    'adopt',
+    'decide',
+    'feature',
+    'bugfix',
+    'hotfix',
+    'refactor',
+    'spike',
+    'chore',
+    'spec-kit',
+    'review',
+    'release',
+  ]) {
+    const route = getCommandRoute(command);
+
+    assert.equal(route.found, true);
+    assert.ok(route.process.length > 0, `${command} should declare process`);
+    assert.ok(route.outputs.length > 0, `${command} should declare outputs`);
+    assert.ok(route.terminalStatuses.length > 0, `${command} should declare terminal status`);
+  }
+});
+
+test('command aliases normalize to executable command routes', () => {
+  assert.equal(normalizeCommand('story'), 'feature');
+  assert.equal(normalizeCommand('defect'), 'bugfix');
+  assert.equal(normalizeCommand('bug'), 'bugfix');
+  assert.equal(normalizeCommand('research'), 'spike');
+  assert.equal(normalizeCommand('task'), 'chore');
+  assert.equal(getCommandRoute('story').workType, 'feature');
+});
+
+test('delivery commands declare workflow work types and terminal delivery status', () => {
+  const deliveryCommands = listCommandRoutes().filter((route) => route.kind === 'delivery');
+
+  assert.ok(deliveryCommands.length > 0);
+
+  for (const route of deliveryCommands) {
+    assert.equal(typeof route.workType, 'string', `${route.command} should map to a work type`);
+    assert.ok(route.terminalStatuses.includes('READY_FOR_PR'), `${route.command} should be able to finish ready`);
+    assert.ok(route.terminalStatuses.includes('BLOCKED'), `${route.command} should be able to finish blocked`);
+  }
+});
+
+test('all documented base commands are covered by command routes', () => {
+  const commandsDoc = readFileSync(new URL('../prompts/EDITOR_CHAT_COMMANDS.md', import.meta.url), 'utf8');
+  const documentedCommands = [...commandsDoc.matchAll(/### `\/ai-harness ([^`\s]+)/g)].map((match) => match[1]);
+
+  assert.ok(documentedCommands.length > 0);
+
+  for (const command of documentedCommands) {
+    assert.equal(getCommandRoute(command).found, true, `${command} should be configured`);
+  }
 });
 
 let failures = 0;

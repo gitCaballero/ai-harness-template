@@ -12,11 +12,13 @@ Toda entrada `/ai-harness ...` debe cargar:
 2. `ai-engineering/GLOSSARY.md`
 3. memoria relevante en `ai-engineering/memory/`
 4. `ai-engineering/workflows/workflow-routes.json`
-5. `ai-engineering/spec-kit/github-spec-kit-routes.json`
-6. decisión unificada del harness
+5. `ai-engineering/workflows/command-routes.json`
+6. `ai-engineering/spec-kit/github-spec-kit-routes.json`
+7. decisión unificada del harness
 
 Antes de implementar, el agente debe producir o inferir:
 
+- command route;
 - work type;
 - complexity;
 - workflow route;
@@ -25,6 +27,9 @@ Antes de implementar, el agente debe producir o inferir:
 - minimum documentation;
 - harness gates;
 - implementation permission.
+- terminal status permitido.
+
+Regla anti-trabajo inconcluso: todo comando documentado debe existir en `ai-engineering/workflows/command-routes.json` con entrada requerida, proceso, salidas y estados terminales. Si una entrada no tiene ruta de comando, el agente debe responder `BLOCKED` y no improvisar el flujo.
 
 ## Comandos base
 

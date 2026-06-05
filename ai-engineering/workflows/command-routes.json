@@ -1,0 +1,122 @@
+{
+  "version": "1.0.0",
+  "defaultTerminalStatuses": ["READY_FOR_PR", "BLOCKED"],
+  "commands": {
+    "help": {
+      "kind": "informational",
+      "inputRequired": [],
+      "process": ["load_command_routes", "explain_available_commands", "explain_minimum_flow"],
+      "outputs": ["available_commands", "minimum_flow", "safety_rules"],
+      "terminalStatuses": ["COMPLETE"]
+    },
+    "analyze": {
+      "kind": "analysis",
+      "inputRequired": ["repository"],
+      "processPrompt": "prompts/MASTER_ANALYSIS.md",
+      "process": ["load_context", "map_repository", "detect_stacks", "identify_entry_points", "report_risks"],
+      "outputs": ["executive_summary", "observed_architecture", "detected_flows", "ai_opportunities", "startup_plan"],
+      "artifacts": ["evidence.md"],
+      "terminalStatuses": ["COMPLETE", "BLOCKED"]
+    },
+    "adopt": {
+      "kind": "adoption",
+      "inputRequired": ["repository"],
+      "processPrompt": "prompts/ADOPT_EXISTING_PROJECT.md",
+      "process": ["analyze_repository", "detect_stack_profiles", "define_reversible_integration", "run_checks", "update_memory"],
+      "outputs": ["detected_stack", "harness_pieces_applied", "harness_pieces_deferred", "checks", "residual_risks"],
+      "artifacts": ["spec.md", "plan.md", "tasks.md", "evidence.md", "validation.md"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    },
+    "decide": {
+      "kind": "decision",
+      "inputRequired": ["work_type", "ticket_id"],
+      "process": ["normalize_work_type", "classify_complexity", "select_workflow_route", "select_spec_provider", "compose_harness_decision"],
+      "outputs": ["work_type", "complexity", "route", "spec_provider", "task_decomposition", "harness_gates"],
+      "terminalStatuses": ["DECISION_READY", "BLOCKED"]
+    },
+    "feature": {
+      "kind": "delivery",
+      "workType": "feature",
+      "inputRequired": ["ticket_id", "context_or_ticket"],
+      "processPrompt": "prompts/ORCHESTRATOR_WORKFLOW.md",
+      "process": ["harness_decision", "evidence_map", "full_sdd", "task_decomposition", "implementation", "tests", "review", "delivery_validation"],
+      "outputs": ["summary", "evidence", "tests", "memory_updates", "residual_risks", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    },
+    "bugfix": {
+      "kind": "delivery",
+      "workType": "bugfix",
+      "inputRequired": ["ticket_id", "context_or_ticket"],
+      "processPrompt": "prompts/ORCHESTRATOR_WORKFLOW.md",
+      "process": ["harness_decision", "reproduce_or_explain_failure", "evidence_map", "focused_fix", "regression_test", "review", "delivery_validation"],
+      "outputs": ["summary", "evidence", "tests", "memory_updates", "residual_risks", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    },
+    "hotfix": {
+      "kind": "delivery",
+      "workType": "hotfix",
+      "inputRequired": ["ticket_id", "incident_context"],
+      "processPrompt": "prompts/ORCHESTRATOR_WORKFLOW.md",
+      "process": ["harness_decision", "incident_note", "minimal_risk_analysis", "smallest_safe_fix", "smoke_or_regression", "human_approval", "delivery_validation"],
+      "outputs": ["summary", "evidence", "tests", "approval", "residual_risks", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    },
+    "refactor": {
+      "kind": "delivery",
+      "workType": "refactor",
+      "inputRequired": ["ticket_id", "context_or_ticket"],
+      "processPrompt": "prompts/ORCHESTRATOR_WORKFLOW.md",
+      "process": ["harness_decision", "behavior_baseline", "refactor_plan", "task_decomposition", "implementation", "regression_tests", "architecture_review", "delivery_validation"],
+      "outputs": ["summary", "evidence", "tests", "memory_updates", "residual_risks", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    },
+    "spike": {
+      "kind": "research",
+      "workType": "spike",
+      "inputRequired": ["ticket_id", "research_questions"],
+      "processPrompt": "prompts/ORCHESTRATOR_WORKFLOW.md",
+      "process": ["harness_decision", "evidence_map", "research_questions", "compare_options", "recommendation", "validation"],
+      "outputs": ["findings", "options", "recommendation", "risks", "next_action"],
+      "terminalStatuses": ["COMPLETE", "BLOCKED"]
+    },
+    "chore": {
+      "kind": "delivery",
+      "workType": "chore",
+      "inputRequired": ["ticket_id", "context_or_ticket"],
+      "processPrompt": "prompts/ORCHESTRATOR_WORKFLOW.md",
+      "process": ["harness_decision", "confirm_behavior_impact", "maintenance_change", "checks_when_relevant", "memory_update", "delivery_validation"],
+      "outputs": ["summary", "evidence", "checks", "memory_updates", "residual_risks", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    },
+    "spec-kit": {
+      "kind": "provider_detection",
+      "inputRequired": ["repository"],
+      "process": ["detect_specify_cli", "detect_project_markers", "select_provider", "suggest_install_or_init_when_missing"],
+      "outputs": ["provider", "detection_status", "suggestion", "next_action"],
+      "terminalStatuses": ["COMPLETE", "BLOCKED"]
+    },
+    "review": {
+      "kind": "review",
+      "inputRequired": ["current_change"],
+      "processPrompt": "prompts/REVIEW_CHECKLIST.md",
+      "process": ["load_change", "check_constitution", "check_specs", "check_tests", "check_memory", "report_findings"],
+      "outputs": ["findings", "evidence", "risks", "verdict", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "CHANGES_REQUESTED", "BLOCKED"]
+    },
+    "release": {
+      "kind": "release",
+      "inputRequired": ["current_change"],
+      "processPrompt": "prompts/harness-operator.md",
+      "process": ["validate_build", "validate_tests", "run_ai_harness", "validate_memory", "validate_approvals", "prepare_release_evidence"],
+      "outputs": ["summary", "evidence", "checks", "approvals", "residual_risks", "next_action"],
+      "terminalStatuses": ["READY_FOR_PR", "BLOCKED"]
+    }
+  },
+  "aliases": {
+    "story": "feature",
+    "defect": "bugfix",
+    "bug": "bugfix",
+    "research": "spike",
+    "task": "chore"
+  }
+}

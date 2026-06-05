@@ -25,3 +25,6 @@ jobs:
 
       - name: AI harness
         run: npm run ai:harness
+
+      - name: Native tests
+        run: npm run test:native

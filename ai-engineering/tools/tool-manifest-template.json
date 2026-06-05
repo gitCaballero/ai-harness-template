@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "example_read_only_tool",
+      "audiences": ["engineer"],
+      "mode": "read_only",
+      "inputs": [],
+      "outputs": [],
+      "approvalRequired": false,
+      "evidenceRequired": true
+    },
+    {
+      "name": "example_execution_tool",
+      "audiences": ["specialist"],
+      "mode": "execution",
+      "inputs": [],
+      "outputs": [],
+      "approvalRequired": true,
+      "evidenceRequired": true
+    }
+  ]
+}
+

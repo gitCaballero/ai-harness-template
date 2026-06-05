@@ -5,9 +5,11 @@
   "type": "module",
   "description": "AI harness template para SDD/spec-kit, agentes, guardrails, memoria, evaluaciones y CI/CD con Harness.io.",
   "scripts": {
-    "test": "node scripts/run-harness.js",
     "ai:harness": "node scripts/run-harness.js",
-    "ai:check": "npm run ai:harness"
+    "ai:check": "npm run ai:harness",
+    "test": "npm run ai:harness",
+    "test:native": "node --test",
+    "test:all": "npm run ai:harness && npm run test:native"
   },
   "engines": {
     "node": ">=20"

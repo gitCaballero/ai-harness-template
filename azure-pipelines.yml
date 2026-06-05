@@ -17,20 +17,60 @@ variables:
   buildConfiguration: Release
 
 steps:
+  - script: |
+      if [ -f package.json ]; then
+        npm install
+      else
+        echo "No package.json found; skipping Node install."
+      fi
+    displayName: Install Node dependencies when present
+
+  - script: |
+      if [ -f package.json ]; then
+        npm run ai:harness
+      else
+        echo "No package.json found; skipping AI harness runtime checks."
+      fi
+    displayName: AI harness
+
+  - script: |
+      if [ -f package.json ]; then
+        npm run test:native
+      else
+        echo "No package.json found; skipping native Node tests."
+      fi
+    displayName: Native Node tests
+
   - task: UseDotNet@2
     displayName: Use .NET SDK
+    condition: succeededOrFailed()
     inputs:
       packageType: sdk
       version: 8.x
 
-  - script: dotnet restore
-    displayName: Restore
+  - script: |
+      if find . \( -name "*.sln" -o -name "*.csproj" \) -print -quit | grep -q .; then
+        dotnet restore
+      else
+        echo "No .NET solution or project found; skipping restore."
+      fi
+    displayName: Restore .NET when present
 
-  - script: dotnet build --configuration $(buildConfiguration) --no-restore
-    displayName: Build
+  - script: |
+      if find . \( -name "*.sln" -o -name "*.csproj" \) -print -quit | grep -q .; then
+        dotnet build --configuration $(buildConfiguration) --no-restore
+      else
+        echo "No .NET solution or project found; skipping build."
+      fi
+    displayName: Build .NET when present
 
-  - script: dotnet test --configuration $(buildConfiguration) --no-build --logger trx --collect:"XPlat Code Coverage"
-    displayName: Test
+  - script: |
+      if find . \( -name "*.sln" -o -name "*.csproj" \) -print -quit | grep -q .; then
+        dotnet test --configuration $(buildConfiguration) --no-build --logger trx --collect:"XPlat Code Coverage"
+      else
+        echo "No .NET solution or project found; skipping tests."
+      fi
+    displayName: Test .NET when present
 
   - task: PublishTestResults@2
     displayName: Publish test results
@@ -44,6 +84,3 @@ steps:
     condition: succeededOrFailed()
     inputs:
       summaryFileLocation: "$(Agent.TempDirectory)/**/coverage.cobertura.xml"
-
-  - script: npm run ai:harness
-    displayName: AI harness
