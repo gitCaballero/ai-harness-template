@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "defaultMode": "single_orchestrator",
+  "routes": {
+    "feature": {
+      "route": "full_sdd",
+      "specRequired": true,
+      "artifacts": ["spec.md", "plan.md", "tasks.md", "evidence.md", "validation.md"],
+      "taskDecomposition": "required",
+      "reviewIterations": 2,
+      "tests": ["unit", "integration_or_contract_when_needed", "regression"],
+      "humanApprovalRequired": false
+    },
+    "bugfix": {
+      "route": "focused_fix",
+      "specRequired": "light",
+      "artifacts": ["spec.md", "evidence.md", "validation.md"],
+      "taskDecomposition": "when_medium_or_large",
+      "reviewIterations": 1,
+      "tests": ["regression", "error_path_when_relevant"],
+      "humanApprovalRequired": false
+    },
+    "hotfix": {
+      "route": "emergency_fix",
+      "specRequired": "incident_note",
+      "artifacts": ["spec.md", "evidence.md", "validation.md"],
+      "taskDecomposition": "minimal_when_large",
+      "reviewIterations": 1,
+      "tests": ["smoke", "regression_when_possible"],
+      "humanApprovalRequired": true
+    },
+    "refactor": {
+      "route": "architecture_safe_change",
+      "specRequired": true,
+      "artifacts": ["spec.md", "plan.md", "tasks.md", "evidence.md", "validation.md"],
+      "taskDecomposition": "required",
+      "reviewIterations": 2,
+      "tests": ["regression", "contract_when_boundaries_change"],
+      "humanApprovalRequired": false
+    },
+    "spike": {
+      "route": "research_only",
+      "specRequired": "research_brief",
+      "artifacts": ["spec.md", "evidence.md", "validation.md"],
+      "taskDecomposition": "research_questions",
+      "reviewIterations": 0,
+      "tests": [],
+      "humanApprovalRequired": false,
+      "implementationAllowed": false
+    },
+    "chore": {
+      "route": "maintenance",
+      "specRequired": "light",
+      "artifacts": ["spec.md", "evidence.md", "validation.md"],
+      "taskDecomposition": "optional",
+      "reviewIterations": 1,
+      "tests": ["when_behavior_changes"],
+      "humanApprovalRequired": false
+    }
+  },
+  "complexity": {
+    "small": {
+      "mode": "orchestrator_only",
+      "taskStrategy": "single_context",
+      "humanApprovalRequired": false
+    },
+    "medium": {
+      "mode": "orchestrator_with_worker_modes",
+      "taskStrategy": "decompose_by_files_or_flow",
+      "humanApprovalRequired": false
+    },
+    "large": {
+      "mode": "orchestrator_plus_specialized_review",
+      "taskStrategy": "decompose_by_domain_boundary",
+      "humanApprovalRequired": true
+    }
+  }
+}

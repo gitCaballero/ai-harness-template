@@ -1,0 +1,49 @@
+pipeline:
+  name: ai-harness-template
+  identifier: ai_harness_template
+  projectIdentifier: ai_engineering
+  orgIdentifier: default
+  tags:
+    ai-engineering: "true"
+    harness-template: "true"
+  stages:
+    - stage:
+        name: verify
+        identifier: verify
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: install
+                  identifier: install
+                  spec:
+                    shell: Sh
+                    command: npm install
+              - step:
+                  type: Run
+                  name: ai_harness
+                  identifier: ai_harness
+                  spec:
+                    shell: Sh
+                    command: npm run ai:harness
+    - stage:
+        name: approval_gate
+        identifier: approval_gate
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: HarnessApproval
+                  name: approve_release
+                  identifier: approve_release
+                  spec:
+                    approvalMessage: Verify AI harness, guardrails and implementation state before release.
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      userGroups: []
+                      minimumCount: 1
+                      disallowPipelineExecutor: false

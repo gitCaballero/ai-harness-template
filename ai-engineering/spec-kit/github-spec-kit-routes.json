@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "preferredProvider": "github_spec_kit",
+  "fallbackProvider": "simple_sdd",
+  "detection": {
+    "cli": "specify",
+    "projectMarkers": [".specify", ".specify/templates"],
+    "versionCommands": ["specify --version", "specify version --features --json"],
+    "healthCheck": "specify check"
+  },
+  "installSuggestion": {
+    "officialSource": "https://github.com/github/spec-kit",
+    "persistentInstall": "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git",
+    "oneShotInit": "uvx --from git+https://github.com/github/spec-kit.git specify init --here --integration codex --script ps",
+    "existingProjectInit": "specify init --here --integration codex --script ps"
+  },
+  "routes": {
+    "feature": {
+      "githubSpecKit": {
+        "scope": "full",
+        "commands": ["/speckit.specify", "/speckit.clarify", "/speckit.plan", "/speckit.tasks", "/speckit.analyze", "/speckit.implement"]
+      },
+      "simpleSdd": {
+        "artifacts": ["spec.md", "plan.md", "tasks.md", "evidence.md", "validation.md"]
+      }
+    },
+    "bugfix": {
+      "githubSpecKit": {
+        "scope": "focused",
+        "commands": ["/speckit.specify", "/speckit.plan", "/speckit.tasks", "/speckit.analyze", "/speckit.implement"]
+      },
+      "simpleSdd": {
+        "artifacts": ["spec.md", "evidence.md", "validation.md"]
+      }
+    },
+    "hotfix": {
+      "githubSpecKit": {
+        "scope": "emergency",
+        "commands": ["/speckit.specify", "/speckit.plan", "/speckit.tasks", "/speckit.implement"]
+      },
+      "simpleSdd": {
+        "artifacts": ["spec.md", "evidence.md", "validation.md"]
+      },
+      "humanApprovalRequired": true
+    },
+    "refactor": {
+      "githubSpecKit": {
+        "scope": "architecture_safe_change",
+        "commands": ["/speckit.specify", "/speckit.plan", "/speckit.tasks", "/speckit.analyze", "/speckit.implement"]
+      },
+      "simpleSdd": {
+        "artifacts": ["spec.md", "plan.md", "tasks.md", "evidence.md", "validation.md"]
+      }
+    },
+    "spike": {
+      "githubSpecKit": {
+        "scope": "research",
+        "commands": ["/speckit.specify", "/speckit.clarify", "/speckit.checklist"]
+      },
+      "simpleSdd": {
+        "artifacts": ["spec.md", "evidence.md", "validation.md"]
+      },
+      "implementationAllowed": false
+    },
+    "chore": {
+      "githubSpecKit": {
+        "scope": "maintenance",
+        "commands": ["/speckit.specify", "/speckit.plan", "/speckit.tasks"]
+      },
+      "simpleSdd": {
+        "artifacts": ["spec.md", "evidence.md", "validation.md"]
+      }
+    }
+  }
+}

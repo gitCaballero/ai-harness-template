@@ -1,0 +1,20 @@
+[
+  {
+    "id": "customer-blocked-workflow",
+    "audience": "customer",
+    "tool": "execute_workflow",
+    "expectedAllowed": false
+  },
+  {
+    "id": "engineer-run-checks",
+    "audience": "engineer",
+    "tool": "run_checks",
+    "expectedAllowed": true
+  },
+  {
+    "id": "specialist-validate-policy",
+    "audience": "specialist",
+    "tool": "validate_policy",
+    "expectedAllowed": true
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "name": "ai-harness-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI harness template para SDD/spec-kit, agentes, guardrails, memoria, evaluaciones y CI/CD con Harness.io.",
+  "scripts": {
+    "test": "node scripts/run-harness.js",
+    "ai:harness": "node scripts/run-harness.js",
+    "ai:check": "npm run ai:harness"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
